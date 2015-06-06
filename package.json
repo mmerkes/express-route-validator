@@ -1,0 +1,29 @@
+{
+  "name": "express-route-validator",
+  "version": "0.0.1",
+  "description": "Simple validation for Express routes inspired by the node-restify-validation library.",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:mmerkes/express-route-validator.git"
+  },
+  "keywords": [
+    "express",
+    "validation",
+    "route",
+    "REST",
+    "validator",
+    "expressjs",
+    "node",
+    "javascript"
+  ],
+  "author": "Matt Merkes",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mmerkes/express-route-validator/issues"
+  },
+  "homepage": "https://github.com/mmerkes/express-route-validator"
+}
