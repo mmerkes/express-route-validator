@@ -25,5 +25,14 @@
   "bugs": {
     "url": "https://github.com/mmerkes/express-route-validator/issues"
   },
-  "homepage": "https://github.com/mmerkes/express-route-validator"
+  "homepage": "https://github.com/mmerkes/express-route-validator",
+  "dependencies": {
+    "validator": "^3.40.0"
+  },
+  "devDependencies": {
+    "chai": "^3.0.0",
+    "express": "^4.12.4",
+    "mocha": "^2.2.5",
+    "supertest": "^1.0.1"
+  }
 }
