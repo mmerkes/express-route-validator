@@ -3,6 +3,17 @@ var express = require('express'),
     routeValidator = require('../index.js'),
     validator = require('validator');
 
+// Set custom error handling
+// routeValidator.set('errorHandler', function (err, req, res, next) {
+//   console.error(err, 'Validation failed for route ' + req.path);
+//   return res.render('error', {
+//     message: err.message
+//   });
+// });
+
+// Configure to pass error into next, defaults to false
+// routeValidator.set('callNext', true);
+
 // Add custom validators
 routeValidator.addValidator('isPercent', function (val) {
   var num = validator.toFloat(val);
@@ -26,6 +37,12 @@ app.get('/items', routeValidator.validate({
     since: { isDate: true, isRequired: true, toDate: true },
     minPrice: { isFloat: true, toFloat: true }, // isRequired defaults to false
     maxPrice: { isFloat: true, toFloat: true }
+  },
+  // Set custom error handler
+  errorHandler: function (err, req, res, next) {
+    return res.render('error', {
+      message: err.message
+    });
   }
 }), function (req, res) {
   return res.status(200).json({
@@ -46,7 +63,10 @@ app.post('/items', routeValidator.validate({
     title: { isRequired: true },
     description: { isRequired: true },
     price: { isRequired: true, isCurrency: true }
-  }
+  },
+  // Rather than sending a 400, tell validator to call next(err); instead
+  // so that it can be handled in the pipeline
+  callNext: true
 }), function (req, res) {
   return res.status(201).json({
     id: '507f1f77bcf86cd799439011',
