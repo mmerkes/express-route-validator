@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/mmerkes/express-route-validator",
   "dependencies": {
-    "validator": "^3.40.0"
+    "validator": "~3.40.0"
   },
   "devDependencies": {
     "chai": "^3.0.0",
