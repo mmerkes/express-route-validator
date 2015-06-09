@@ -2,7 +2,7 @@
   "name": "express-route-validator",
   "version": "0.0.1",
   "description": "Simple validation for Express routes inspired by the node-restify-validation library.",
-  "main": "index.js",
+  "main": "./lib/middleware.js",
   "scripts": {
     "test": "npm test"
   },

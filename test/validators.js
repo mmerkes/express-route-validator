@@ -9,7 +9,7 @@ var validators = require('../lib/validators'),
   They are meant to affirm that the wrapping was done successfully,
   affirm that passing in `true` as the second argument in cases where
   a second argument is not required and won't break the check,
-  and to test that arrays of arguments are handled properly when validator
+  and to test that objects of arguments are handled properly when validator
   requires/allows more than two arguments.
 */
 
@@ -523,6 +523,18 @@ describe('UNIT Validators', function () {
 
     it('should return false if does not match pattern with modifier', function () {
       expect(validators.matches('Acb', { pattern: 'abc', modifiers: 'i' })).to.be.false;
+    });
+  });
+
+  describe('validate(str, fn)', function () {
+    it('should take a custom validation function and return the result', function () {
+      var isPercent = function (str) {
+        var val = +str;
+        return !!(val && val >= 0 && val <= 1);
+      };
+      expect(validators.validate('0.1', isPercent)).to.be.true;
+      expect(validators.validate('20', isPercent)).to.be.false;
+      expect(validators.validate('banana', isPercent)).to.be.false;
     });
   });
 });
