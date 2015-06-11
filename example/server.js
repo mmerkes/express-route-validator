@@ -78,7 +78,7 @@ app.post('/items', routeValidator.validate({
 
 app.get('/items/:item', routeValidator.validate({
   params: {
-    item: { isRequired: true, isMongoId: true }
+    item: { isRequired: true, isMongoId: true, description: 'ObjectID for item' }
   }
 }), function (req, res) {
   return res.status(200).json({
