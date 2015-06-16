@@ -5,7 +5,8 @@ var request = require('supertest'),
     chai = require('chai'),
     expect = chai.expect,
     routeValidator = require('../lib/middleware'),
-    app = require('./test_server');
+    app = require('./test_server'),
+    async = require('async');
 
 describe('INTEGRATION middleware', function () {
   describe('#validates(config)', function () {
@@ -367,25 +368,167 @@ Test Cases
     });
   });
 
-  // describe('addValidator(name, fn)', function () {
-  //   it('should allow adding a custom validator', function () {
+  describe('#addValidator(name, fn)', function () {
+    var isNumeric;
+    before( function () {
+      isNumeric = routeValidator._validators.isNumeric;
+    });
 
-  //   });
+    after( function () {
+      routeValidator._validators.isNumeric = isNumeric;
+    });
 
-  //   it('should override existing validators of the same name', function () {
+    it('should not add validator or break if not passed a function', function () {
+      routeValidator.addValidator('isNotFunction', 'banana');
+      expect(routeValidator._validators).to.not.have.property('isNotFunction');
+    });
 
-  //   });
-  // });
+    it('should allow adding a custom validator', function (done) {
+      // Adds new validator
+      routeValidator.addValidator('isValidAge', function (str) {
+        var age = +str;
+        return age ? (age > 0 && age < 120) : false;
+      });
+      expect(routeValidator._validators).to.have.property('isValidAge');
+      async.parallel([
+        function (callback) {
+          request(app)
+            .post('/users')
+            .send({
+              name: 'Billy',
+              age: 23,
+              email: 'billy@hillbilly.com'
+            })
+            .expect(200, callback);
+        },
+        function (callback) {
+          request(app)
+            .post('/users')
+            .send({
+              name: 'Invalid',
+              age: 2000,
+              email: 'invalid@timeless.com'
+            })
+            .expect(400, function (err, res) {
+              if (err) return callback(err);
+              expect(res.body).to.have.property('error').that.contains('body.age');
+              return callback();
+            });
+        }
+      ], done);
+    });
 
-  // describe('addValidators(obj)', function () {
-  //   it('should not break if passing in an empty object', function () {
+    it('should override existing validators of the same name', function (done) {
+      // Overrides existing validator
+      routeValidator.addValidator('isNumeric', function (str) {
+        var validNumbers = ['one', 'two', 'three', 'four', 'five', 'six', 'seven'];
+        return validNumbers.indexOf(str) !== -1;
+      });
+      expect(routeValidator._validators).to.have.property('isNumeric');
+      async.parallel([
+        function (callback) {
+          request(app)
+            .put('/users/billy')
+            .send({
+              age: 'seven'
+            })
+            .expect(200, callback);
+        },
+        function (callback) {
+          request(app)
+            .put('/users/invalid')
+            .send({
+              age: 20
+            })
+            .expect(400, function (err, res) {
+              if (err) return callback(err);
+              expect(res.body).to.have.property('error').that.contains('body.age');
+              return callback();
+            });
+        }
+      ], done);
+    });
+  });
 
-  //   });
+  describe('#addValidators(obj)', function () {
+    var isNumeric;
+    before( function () {
+      isNumeric = routeValidator._validators.isNumeric;
+    });
 
-  //   it('should allow passing in an object of validators and set them internally', function () {
+    after( function () {
+      routeValidator._validators.isNumeric = isNumeric;
+    });
 
-  //   });
-  // });
+    it('should not break if passing in an empty object', function () {
+      routeValidator.addValidators({});
+    });
+
+    it('should not add validator or break if key is not function', function () {
+      routeValidator.addValidators({
+        // Adds invalid
+        isNotValidator: 'oops'
+      });
+      expect(routeValidator._validators).to.not.have.property('isNotValidator');
+    });
+
+    it('should allow passing in an object of validators and set them internally', function (done) {
+      routeValidator.addValidators({
+        // Overrides existing
+        isNumeric: function (str) {
+          var validNumbers = ['eight', 'nine', 'ten'];
+          return validNumbers.indexOf(str) !== -1;
+        },
+        // Adds new
+        isTurtleWeight: function (str) {
+          var weight = +str;
+          return weight ? (weight > 10 && weight < 800) : false;
+        }
+      });
+      expect(routeValidator._validators).to.have.property('isNumeric');
+      expect(routeValidator._validators).to.have.property('isTurtleWeight');
+      async.parallel([
+        function (callback) {
+          request(app)
+            .post('/turtles')
+            .send({
+              size: 'nine',
+              weight: 500,
+              name: 'Stanley'
+            })
+            .expect(200, callback);
+        },
+        function (callback) {
+          request(app)
+            .post('/turtles')
+            .send({
+              size: 9,
+              weight: 600,
+              name: 'Loopie'
+            })
+            .expect(400, function (err, res) {
+              if (err) return callback(err);
+              expect(res.body).to.have.property('error').that.contains('body.size');
+              return callback();
+            });
+        },
+        function (callback) {
+          request(app)
+            .post('/turtles')
+            .send({
+              size: 'ten',
+              weight: 60000,
+              name: 'Loopie'
+            })
+            .expect(400, function (err, res) {
+              if (err) return callback(err);
+              expect(res.body).to.have.property('error').that.contains('body.weight');
+              return callback();
+            });
+        }
+      ], done);
+    });
+  });
 
   // describe('addCoercer()', function () {
 

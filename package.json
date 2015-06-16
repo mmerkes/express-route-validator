@@ -30,6 +30,7 @@
     "validator": "~3.40.0"
   },
   "devDependencies": {
+    "async": "^1.2.1",
     "body-parser": "^1.12.4",
     "chai": "^3.0.0",
     "express": "^4.12.4",

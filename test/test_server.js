@@ -58,6 +58,16 @@ app.get('/users', routeValidator.validate({
   return res.status(200).end();
 });
 
+app.post('/users', routeValidator.validate({
+  body: {
+    name: { isRequired: true },
+    age: { isRequired: true, isValidAge: true },
+    email: { isRequired: true, isEmail: true }
+  }
+}), function (req, res) {
+  return res.status(200).end();
+});
+
 app.get('/users/:user', routeValidator.validate({
   params: {
     user: { isRequired: true, isEmail: true }
@@ -72,6 +82,24 @@ app.get('/users/:user', routeValidator.validate({
     return res.status(500).send({
       error: 'Don\'t know how we got here...'
     });
+  }
+}), function (req, res) {
+  return res.status(200).end();
+});
+
+app.put('/users/:user', routeValidator.validate({
+  body: {
+    age: { isNumeric: true, isRequired: true }
+  }
+}), function (req, res) {
+  return res.status(200).end();
+});
+
+app.post('/turtles', routeValidator.validate({
+  body: {
+    size: { isRequired: true, isNumeric: true },
+    weight: { isRequired: true, isTurtleWeight: true },
+    name: { isRequired: true }
   }
 }), function (req, res) {
   return res.status(200).end();
