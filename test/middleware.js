@@ -322,49 +322,37 @@ Test Cases
 1. callNext set to false in config, true in app
 ***********/
 
-  describe.skip('#set(key, value)', function () {
-    var errorHandler;
+  describe('#set(key, value)', function () {
+    var errorHandler, callNext;
 
     before( function () {
       errorHandler = routeValidator._errorHandler;
+      callNext = routeValidator._callNext;
     });
 
     after( function () {
       routeValidator._errorHandler = errorHandler;
-      routeValidator._callNext = false;
+      routeValidator._callNext = callNext;
     });
 
-    it('should allow setting callNext to pass err into next rather than default behavior', function (done) {
+    it('should allow setting callNext to pass err into next rather than default behavior', function () {
       routeValidator.set('callNext', true);
-      request(app)
-        .get('/keys/not-valid')
-        .expect(500, function (err, res) {
-          if (err) return done(err);
-          expect(res.body).to.have.property('message').that.equals('calledNext');
-          return done();
-        });
+      expect(routeValidator).to.have.property('_callNext').that.is.true;
     });
 
-    it('should allow setting the errorHandler to override default behavior', function (done) {
-      routeValidator.set('errorHandler', function (err, req, res, next) {
+    it('should allow setting the errorHandler to override default behavior', function () {
+      var newErrorHandler = function (err, req, res, next) {
         return res.status(404).send({
           message: 'errorHandled'
         });
-      });
-      request(app)
-        .get('/keys/not-valid')
-        .expect(404, function (err, res) {
-          if (err) return done(err);
-          expect(res.body).to.have.property('message').that.equals('errorHandled');
-          return done();
-        });
+      };
+      routeValidator.set('errorHandler', newErrorHandler);
+      expect(routeValidator).to.have.property('_errorHandler').that.equals(newErrorHandler);
     });
 
-    it('should do nothing if key is not recognized', function (done) {
+    it('should do nothing if key is not recognized', function () {
       routeValidator.set('invalid', 'banana');
-      request(app)
-        .get('/keys/not-valid')
-        .expect(400, done);
+      expect(routeValidator).to.not.have.property('invalid');
     });
   });
 
@@ -530,7 +518,201 @@ Test Cases
     });
   });
 
-  // describe('addCoercer()', function () {
+  describe('addCoercer()', function () {
+    describe('config.stage === "before"', function () {
+      it('should be able to add a custom coercer run before validation', function (done) {
+        routeValidator.addCoercer('toLowerCaseSize', {
+          stage: 'before',
+          coerce: function (str) {
+            return str.toLowerCase();
+          }
+        });
+        expect(routeValidator._before).to.have.property('toLowerCaseSize');
+        async.parallel([
+          function (callback) {
+            request(app)
+              .get('/turtles')
+              .query({
+                sizeStr: 'EIGHT'
+              })
+              .expect(200, callback);
+          },
+          function (callback) {
+            request(app)
+              .get('/turtles')
+              .query({
+                sizeStr: 'nine'
+              })
+              .expect(200, callback);
+          }
+        ], done);
+      });
 
-  // });
+      it('should not add coercer if it is not a function', function () {
+        routeValidator.addCoercer('apple', {
+          stage: 'before',
+          coerce: 'apple'
+        });
+        expect(routeValidator._before).to.not.have.property('apple');
+      });
+    });
+
+    describe('config.stage === "after"', function () {
+      it('should be able to add a custom coercer run before validation', function (done) {
+        routeValidator.addValidator('isWeightRange', function (str) {
+          var arr = str.split('-');
+          return +arr[0] && +arr[1];
+        });
+        routeValidator.addCoercer('toRangeArray', {
+          stage: 'after',
+          coerce: function (str) {
+            var arr = str.split('-');
+            arr[0] = +arr[0];
+            arr[1] = +arr[1];
+            return arr;
+          }
+        });
+        expect(routeValidator._after).to.have.property('toRangeArray');
+        async.parallel([
+          function (callback) {
+            request(app)
+              .get('/turtles')
+              .query({
+                weightRange: '500'
+              })
+              .expect(400, callback);
+          },
+          function (callback) {
+            request(app)
+              .get('/turtles')
+              .query({
+                weightRange: '100-500'
+              })
+              .expect(200, callback);
+          }
+        ], done);
+      });
+
+      it('should not add coercer if it is not a function', function () {
+        routeValidator.addCoercer('peach', {
+          stage: 'after',
+          coerce: 'peach'
+        });
+        expect(routeValidator._before).to.not.have.property('peach');
+      });
+    });
+
+    describe('invalid config.stage', function () {
+      it('should do nothing if config.stage is invalid', function () {
+        routeValidator.addCoercer('banana', {
+          stage: 'banana',
+          coerce: function () {
+            return 'banana';
+          }
+        });
+        expect(routeValidator._before).to.not.have.property('banana');
+      });
+
+      it('should do nothing if config.stage is not set', function () {
+        routeValidator.addCoercer('pear', {
+          coerce: function () {
+            return 'pear';
+          }
+        });
+        expect(routeValidator._before).to.not.have.property('pear');
+      });
+    });
+  });
+
+  describe('#addCoercers(obj)', function () {
+    var toDate;
+    before( function () {
+      toDate = routeValidator._before.toDate;
+    });
+
+    after( function () {
+      routeValidator._before.toDate = toDate;
+    });
+
+    it('should not break if passing in an empty object', function () {
+      routeValidator.addCoercers({});
+    });
+
+    it('should not add coercer or break if key is not a config object', function () {
+      routeValidator.addCoercers({
+        // Adds invalid
+        isNotCoercer: 'oops',
+        alsoNotCoercer: {
+          stage: 'notAstage',
+          coerce: function () {
+            return true;
+          }
+        },
+        andNotOne: {
+          stage: 'before',
+          coerce: 'funky'
+        }
+      });
+      expect(routeValidator._before).to.not.have.property('isNotCoercer');
+      expect(routeValidator._after).to.not.have.property('isNotCoercer');
+      expect(routeValidator._before).to.not.have.property('alsoNotCoercer');
+      expect(routeValidator._after).to.not.have.property('alsoNotCoercer');
+      expect(routeValidator._before).to.not.have.property('addNotOne');
+      expect(routeValidator._after).to.not.have.property('addNotOne');
+    });
+
+    it('should allow passing in an object of validators and set them internally', function (done) {
+      routeValidator.addCoercers({
+        // Overrides existing
+        toDate: {
+          stage: 'after',
+          coerce: function (str) {
+            return 'date';
+          }
+        },
+        // Adds new
+        toLowerCase: {
+          stage: 'before',
+          coerce: function (str) {
+            return str.toLowerCase();
+          }
+        },
+        replaceSpaces: {
+          stage: 'after',
+          coerce: function (str) {
+            return str.replace(/\s/g, '-');
+          }
+        }
+      });
+      expect(routeValidator._after).to.have.property('toDate');
+      expect(routeValidator._before).to.have.property('toLowerCase');
+      expect(routeValidator._after).to.have.property('replaceSpaces');
+      async.parallel([
+        function (callback) {
+          request(app)
+            .get('/turtles')
+            .query({
+              minDate: new Date()
+            })
+            .expect(200, callback);
+        },
+        function (callback) {
+          request(app)
+            .get('/turtles')
+            .query({
+              name: 'Mr Turtles'
+            })
+            .expect(200, callback);
+        },
+        function (callback) {
+          request(app)
+            .get('/turtles')
+            .query({
+              slug: 'My Sweet Turtle'
+            })
+            .expect(200, callback);
+        }
+      ], done);
+    });
+  });
 });

@@ -105,6 +105,36 @@ app.post('/turtles', routeValidator.validate({
   return res.status(200).end();
 });
 
+app.get('/turtles', routeValidator.validate({
+  query: {
+    sizeStr: { isRequired: false, toLowerCaseSize: true, isIn: ['eight', 'nine', 'ten'] },
+    weightRange: { isRequired: false, isWeightRange: true, toRangeArray: true },
+    name: { isRequired: false, isLowercase: true, toLowerCase: true },
+    slug: { isRequired: false, toLowerCase: true, replaceSpaces: true },
+    minDate: { toDate: true }
+  }
+}), function (req, res) {
+  if (req.query.weightRange) {
+    // Make sure that it was converted properly
+    // '100-500' -> [100, 500]
+    var range = req.query.weightRange;
+    if (!(range instanceof Array) || range.length !== 2 ||
+      typeof range[0] !== 'number' || typeof range[1] !== 'number') {
+      return res.status(500).end();
+    }
+  }
+
+  if (req.query.date && req.query.date !== 'date') {
+    return res.status(500).end();
+  }
+
+  if (req.query.slug && req.query.slug.indexOf(' ') !== -1) {
+    return res.status(500).end();
+  }
+
+  return res.status(200).end();
+});
+
 app.use( function (err, req, res, next) {
   if (err) {
     return res.status(400).send({
