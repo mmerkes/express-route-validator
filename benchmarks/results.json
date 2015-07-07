@@ -1,0 +1,13 @@
+{
+  "server_base.js": {
+    "total_requests": 3000,
+    "total_time": 340.5689999999983,
+    "ms_per_request": 0.11352299999999944
+  },
+  "server_no_validation.js": {
+    "total_requests": 3000,
+    "total_time": 325.4989999999992,
+    "ms_per_request": 0.10849966666666641
+  },
+  "start_time": "2015-07-07T22:46:05.279Z"
+}

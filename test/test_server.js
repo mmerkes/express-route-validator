@@ -1,9 +1,11 @@
+'use strict';
+
 var express = require('express'),
     bodyParser = require('body-parser'),
     routeValidator = require('../index'),
     app = express();
 
-app.use(bodyParser.json())
+app.use(bodyParser.json());
 
 app.get('/items', routeValidator.validate({
   query: {
@@ -20,7 +22,7 @@ app.get('/items/:item', routeValidator.validate({
   params: {
     item: { isMongoId: true, isRequired: true }
   }
-}), function (req, res, next) {
+}), function (req, res) {
   return res.status(200).end();
 });
 
@@ -42,7 +44,7 @@ app.get('/items/:item/messages/:message', routeValidator.validate({
     item: { isMongoId: true, isRequired: true },
     message: { isMongoId: true, isRequired: true }
   }
-}), function (req, res, next) {
+}), function (req, res) {
   return res.status(200).end();
 });
 
@@ -73,14 +75,9 @@ app.get('/users/:user', routeValidator.validate({
     user: { isRequired: true, isEmail: true }
   },
   errorHandler: function (err, req, res, next) {
-    if (err) {
-      return res.status(400).send({
-        message: 'routeErrorHandler',
-        error: err.message
-      });
-    }
-    return res.status(500).send({
-      error: 'Don\'t know how we got here...'
+    return res.status(400).send({
+      message: 'routeErrorHandler',
+      error: err.message
     });
   }
 }), function (req, res) {
@@ -136,14 +133,9 @@ app.get('/turtles', routeValidator.validate({
 });
 
 app.use( function (err, req, res, next) {
-  if (err) {
-    return res.status(400).send({
-      error: err.message,
-      message: 'calledNext'
-    });
-  }
-  return res.status(500).send({
-    error: 'Don\'t know how we got here...'
+  return res.status(400).send({
+    error: err.message,
+    message: 'calledNext'
   });
 });
 
