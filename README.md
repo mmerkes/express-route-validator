@@ -3,6 +3,7 @@
 Simple API validation for Express routes.
 
 [![Build Status](https://travis-ci.org/mmerkes/express-route-validator.svg)](https://travis-ci.org/mmerkes/express-route-validator)
+[![Coverage Status](https://coveralls.io/repos/mmerkes/express-route-validator/badge.svg?branch=master&service=github)](https://coveralls.io/github/mmerkes/express-route-validator?branch=master)
 
 **NOTE: This library is not complete, so use with caution. However, it should function as is. See [issues](https://github.com/mmerkes/express-route-validator/issues) for upcoming features.**
 
