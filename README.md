@@ -1,20 +1,69 @@
 # express-route-validator
 
-Simple validation for Express routes inspired by the [node-restify-validation](https://www.npmjs.com/package/node-restify-validation) library, and it uses the [validator](https://www.npmjs.com/package/validator) library for core validation.
+Simple API validation for Express routes.
 
-**NOTE: This library is not complete, so use with caution. However, it should function as is.**
+**NOTE: This library is not complete, so use with caution. However, it should function as is. See [issues](https://github.com/mmerkes/express-route-validator/issues) for upcoming features.**
 
 ## Basic Usage
 
-[See test server for example usage.](https://github.com/mmerkes/express-route-validator/blob/master/test/test_server.js)
+`express-route-validator` has very simple usage. Just call `routeValidator.validate()` as middleware in your `express` routes, pass it a configuration object, and it returns a closure that validates based on your configuration object and sends a 400 by default if it fails. Also, `express-route-validator` extends the `validator` library to give you access to its methods for validation.
+
+Here's a very basic server:
+
+```javascript
+var express = require('express'),
+    bodyParser = require('body-parser'),
+    routeValidator = require('express-route-validator'),
+    app = express();
+
+app.use(bodyParser.json());
+
+var supportedTags = ['javascript', 'node', 'express', 'http'];
+
+app.post('/articles', routeValidator.validate({
+  body: {
+    // Sends a 400 if req.body.title is undefined or contains non-ASCII characters
+    title: { isRequired: true, isAscii: true },
+    // Sends a 400 if req.body.content is undefined
+    content: { isRequired: true },
+    // Sends a 400 if req.body.tag IS defined and does not match
+    // an element in the supportedTags array. Ignores if undefined.
+    tag: { isIn: supportedTags }
+  }
+}), function (req, res) {
+  // Validation passed, so save the article
+});
+
+app.get('/articles/:article', routeValidator.validate({
+  params: {
+    // Send a 400 if req.params.article is undefined or not an MongoId
+    article: { isRequired: true, isMongoId: true }
+  },
+  query: {
+    // Sends a 400 if req.query.includeAuthor IS defined
+    // and is not a boolean. Ignores if undefined.
+    includeAuthor: { isRequired: false, isBoolean: true }
+  }
+}), function (req, res) {
+  // Validation passed, so return the article
+});
+
+app.listen(3000);
+```
+
+[See test server for more complete usage.](https://github.com/mmerkes/express-route-validator/blob/master/test/test_server.js)
 
 ## API Documentation
 
 Coming soon!
 
+## Acknowledgements
+
+Syntax is inspired by the [node-restify-validation](https://www.npmjs.com/package/node-restify-validation) library.
+
 ## Contributing
 
-Contributions are always welcome! If you find bugs, open an issue on the [github repo](https://github.com/mmerkes/express-route-validator/issue). Extra points for a pull request fixing the bug! All bug fixes must include testing to get the PR accepted. Please follow the style conventions in the code. If you have ideas for enhancements, make sure an issue is not already created and if not, open an [issue](https://github.com/mmerkes/express-route-validator/issue) to put it up for discussion.
+Contributions are always welcome! If you find bugs, open an issue on the [github repo](https://github.com/mmerkes/express-route-validator/issues). Extra points for a pull request fixing the bug! All bug fixes must include testing to get the PR accepted. Please follow the style conventions in the code. If you have ideas for enhancements, make sure an issue is not already created and if not, open an [issue](https://github.com/mmerkes/express-route-validator/issues) to put it up for discussion.
 
 ## License
 

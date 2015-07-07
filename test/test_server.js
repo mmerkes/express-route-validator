@@ -1,6 +1,6 @@
 var express = require('express'),
     bodyParser = require('body-parser'),
-    routeValidator = require('../lib/middleware'),
+    routeValidator = require('../index'),
     app = express();
 
 app.use(bodyParser.json())

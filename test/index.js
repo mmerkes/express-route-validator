@@ -4,7 +4,7 @@ var request = require('supertest'),
     express = require('express'),
     chai = require('chai'),
     expect = chai.expect,
-    routeValidator = require('../lib/middleware'),
+    routeValidator = require('../lib/index'),
     app = require('./test_server'),
     async = require('async');
 
