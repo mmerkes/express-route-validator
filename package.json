@@ -1,7 +1,7 @@
 {
   "name": "express-route-validator",
-  "version": "0.1.1",
-  "description": "Simple validation for Express routes inspired by the node-restify-validation library.",
+  "version": "0.1.2",
+  "description": "Simple API validation for Express routes.",
   "main": "index.js",
   "scripts": {
     "test": "./node_modules/.bin/mocha test"
