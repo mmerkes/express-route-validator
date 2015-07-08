@@ -74,7 +74,7 @@ app.get('/users/:user', routeValidator.validate({
   params: {
     user: { isRequired: true, isEmail: true }
   },
-  errorHandler: function (err, req, res, next) {
+  errorHandler: function (err, req, res) {
     return res.status(400).send({
       message: 'routeErrorHandler',
       error: err.message
@@ -132,7 +132,7 @@ app.get('/turtles', routeValidator.validate({
   return res.status(200).end();
 });
 
-app.use( function (err, req, res, next) {
+app.use( function (err, req, res, next) { // jshint ignore:line
   return res.status(400).send({
     error: err.message,
     message: 'calledNext'

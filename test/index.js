@@ -1,7 +1,6 @@
 'use strict';
 
 var request = require('supertest'),
-    express = require('express'),
     chai = require('chai'),
     expect = chai.expect,
     routeValidator = require('../lib/index'),
@@ -311,16 +310,16 @@ describe('INTEGRATION middleware', function () {
     });
   });
 
-/***********
-NEEDS TO TEST PRECENDENCE OF ERROR HANDLING DECISIONS
-1. config.errorHandler
-2. config.callNext
-3. routeValidator._callNext
-4. routeValidator._errorHandler
+  /***********
+  NEEDS TO TEST PRECENDENCE OF ERROR HANDLING DECISIONS
+  1. config.errorHandler
+  2. config.callNext
+  3. routeValidator._callNext
+  4. routeValidator._errorHandler
 
-Test Cases
-1. callNext set to false in config, true in app
-***********/
+  Test Cases
+  1. callNext set to false in config, true in app
+  ***********/
 
   describe('#set(key, value)', function () {
     var errorHandler, callNext;
@@ -341,7 +340,7 @@ Test Cases
     });
 
     it('should allow setting the errorHandler to override default behavior', function () {
-      var newErrorHandler = function (err, req, res, next) {
+      var newErrorHandler = function (err, req, res) {
         return res.status(404).send({
           message: 'errorHandled'
         });
@@ -666,7 +665,7 @@ Test Cases
         // Overrides existing
         toDate: {
           stage: 'after',
-          coerce: function (str) {
+          coerce: function () {
             return 'date';
           }
         },
