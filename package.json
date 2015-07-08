@@ -1,6 +1,6 @@
 {
   "name": "express-route-validator",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Simple API validation for Express routes.",
   "main": "index.js",
   "scripts": {
@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/mmerkes/express-route-validator",
   "dependencies": {
-    "validator": "^3.40.1"
+    "validator": "~3.41.2"
   },
   "devDependencies": {
     "async": "^1.2.1",
