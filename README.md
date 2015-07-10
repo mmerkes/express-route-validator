@@ -32,6 +32,9 @@ app.post('/articles', routeValidator.validate({
     // Sends a 400 if req.body.tag IS defined and does not match
     // an element in the supportedTags array. Ignores if undefined.
     tag: { isIn: supportedTags }
+  },
+  headers: {
+    'content-type': { isRequired: true, equals: 'application/json' }
   }
 }), function (req, res) {
   // Validation passed, so save the article
@@ -97,7 +100,7 @@ By default, if this fails validation, it will send a 400 back to the client with
 
 #### <a name="validation-scope"></a>Validation Scope
 
-Currently, `express-route-validator` supports validation in `req.params`, `req.body`, and `req.query`; thus, this is a valid configuration object:
+Currently, `express-route-validator` supports validation in `req.params`, `req.body`, `req.query`, and `req.headers`; thus, this is a valid configuration object:
 
 ```javascript
 {
@@ -109,6 +112,9 @@ Currently, `express-route-validator` supports validation in `req.params`, `req.b
   },
   query: { // checks req.query
     param3: { isRequired: true }
+  },
+  headers: { // checks req.headers
+    param4: { isRequired: true }
   }
 }
 ```

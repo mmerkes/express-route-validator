@@ -6,6 +6,7 @@ var express = require('express'),
     app = express();
 
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 
 app.get('/items', routeValidator.validate({
   query: {
@@ -34,6 +35,11 @@ app.post('/items', routeValidator.validate({
     user: { isRequired: true, isEmail: true },
     uuid: { isRequired: false, isUUID: true },
     url: { isURL: true }
+  },
+  headers: {
+    'content-type': { isRequired: true, equals: 'application/json' },
+    'authorization': { isRequired: true },
+    'accept-version': { isRequired: false, isIn: ['1.0', '2.0'] }
   }
 }), function (req, res) {
   return res.status(200).end();
@@ -138,7 +144,5 @@ app.use( function (err, req, res, next) { // jshint ignore:line
     message: 'calledNext'
   });
 });
-
-app.listen(3000);
 
 module.exports = app;

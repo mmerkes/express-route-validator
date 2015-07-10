@@ -87,6 +87,7 @@ describe('INTEGRATION middleware', function () {
             uuid: 'A987FBC9-4BED-3078-CF07-9141BA07C9F3',
             url: 'http://tool.com/chainsaw/real-big'
           })
+          .set('Authorization', 'Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==')
           .expect(200, done);
       });
 
@@ -101,6 +102,7 @@ describe('INTEGRATION middleware', function () {
             uuid: 'A987FBC9-4BED-3078-CF07-9141BA07C9F3',
             url: 'http://tool.com/chainsaw/real-big'
           })
+          .set('Authorization', 'Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==')
           .expect(400, function (err, res) {
             if (err) return done(err);
             expect(res.body).to.have.property('error').that.contains('body.type');
@@ -119,6 +121,7 @@ describe('INTEGRATION middleware', function () {
             uuid: 'A987FBC9-4BED-3078-CF07-9141BA07C9F3',
             url: 'http://tool.com/chainsaw/real-big'
           })
+          .set('Authorization', 'Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==')
           .expect(400, function (err, res) {
             if (err) return done(err);
             expect(res.body).to.have.property('error').that.contains('body.user');
@@ -137,6 +140,7 @@ describe('INTEGRATION middleware', function () {
             // uuid: 'A987FBC9-4BED-3078-CF07-9141BA07C9F3',
             url: 'http://tool.com/chainsaw/real-big'
           })
+          .set('Authorization', 'Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==')
           .expect(200, done);
       });
 
@@ -151,6 +155,7 @@ describe('INTEGRATION middleware', function () {
             uuid: 'A987FBC9-4BED-3078-CF07-9141BA07C9F3',
             // url: 'http://tool.com/chainsaw/real-big'
           })
+          .set('Authorization', 'Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==')
           .expect(200, done);
       });
 
@@ -165,6 +170,7 @@ describe('INTEGRATION middleware', function () {
             uuid: 'banana', // invalid and not required
             url: 'http://tool.com/chainsaw/real-big'
           })
+          .set('Authorization', 'Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==')
           .expect(400, function (err, res) {
             if (err) return done(err);
             expect(res.body).to.have.property('error').that.contains('body.uuid');
@@ -254,6 +260,82 @@ describe('INTEGRATION middleware', function () {
           .expect(400, function (err, res) {
             if (err) return done(err);
             expect(res.body).to.have.property('error').that.contains('query.since');
+            return done();
+          });
+      });
+    });
+
+    describe('validates req.headers', function () {
+      it('should validate headers, on success', function (done) {
+        request(app)
+          .post('/items')
+          .send({
+            name: 'Chainsaw',
+            date: new Date(),
+            type: 'tools',
+            user: 'stevie@tool.com',
+            uuid: 'A987FBC9-4BED-3078-CF07-9141BA07C9F3',
+            url: 'http://tool.com/chainsaw/real-big'
+          })
+          .set('Authorization', 'Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==')
+          .set('Accept-Version', '1.0')
+          .expect(200, done);
+      });
+
+      it('should validate headers, on failure', function (done) {
+        request(app)
+          .post('/items')
+          .type('form')
+          .send({
+            name: 'Chainsaw',
+            date: new Date(),
+            type: 'tools',
+            user: 'stevie@tool.com',
+            uuid: 'A987FBC9-4BED-3078-CF07-9141BA07C9F3',
+            url: 'http://tool.com/chainsaw/real-big'
+          })
+          .set('Authorization', 'Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==')
+          .expect(400, function (err, res) {
+            if (err) return done(err);
+            expect(res.body).to.have.property('error').that.contains('headers.content-type');
+            return done();
+          });
+      });
+
+      it('should enforce isRequired', function (done) {
+        request(app)
+          .post('/items')
+          .send({
+            name: 'Chainsaw',
+            date: new Date(),
+            type: 'tools',
+            user: 'stevie@tool.com',
+            uuid: 'A987FBC9-4BED-3078-CF07-9141BA07C9F3',
+            url: 'http://tool.com/chainsaw/real-big'
+          })
+          .expect(400, function (err, res) {
+            if (err) return done(err);
+            expect(res.body).to.have.property('error').that.contains('headers.authorization');
+            return done();
+          });
+      });
+
+      it('should validate headers if they exist, even if isRequired is set to false', function (done) {
+        request(app)
+          .post('/items')
+          .send({
+            name: 'Chainsaw',
+            date: new Date(),
+            type: 'tools',
+            user: 'stevie@tool.com',
+            uuid: 'A987FBC9-4BED-3078-CF07-9141BA07C9F3',
+            url: 'http://tool.com/chainsaw/real-big'
+          })
+          .set('Authorization', 'Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==')
+          .set('Accept-Version', '0.0')
+          .expect(400, function (err, res) {
+            if (err) return done(err);
+            expect(res.body).to.have.property('error').that.contains('headers.accept-version');
             return done();
           });
       });
