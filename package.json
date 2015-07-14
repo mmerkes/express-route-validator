@@ -1,6 +1,6 @@
 {
   "name": "express-route-validator",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Simple API validation for Express routes.",
   "main": "index.js",
   "scripts": {
