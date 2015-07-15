@@ -23,15 +23,13 @@ app.use(bodyParser.json());
 
 var supportedTags = ['javascript', 'node', 'express', 'http'];
 
+// If any property is invalid, a 400 with an error message will be sent
 app.post('/articles', routeValidator.validate({
   body: {
-    // Sends a 400 if req.body.title is undefined or contains non-ASCII characters
     title: { isRequired: true, isAscii: true },
-    // Sends a 400 if req.body.content is undefined
     content: { isRequired: true },
-    // Sends a 400 if req.body.tag IS defined and does not match
-    // an element in the supportedTags array. Ignores if undefined.
-    tag: { isIn: supportedTags }
+    tag: { isIn: supportedTags },
+    author_email: { isEmail: true, normalizeEmail: true, toLowercase: true }
   },
   headers: {
     'content-type': { isRequired: true, equals: 'application/json' }
@@ -42,13 +40,10 @@ app.post('/articles', routeValidator.validate({
 
 app.get('/articles/:article', routeValidator.validate({
   params: {
-    // Send a 400 if req.params.article is undefined or not an MongoId
     article: { isRequired: true, isMongoId: true }
   },
   query: {
-    // Sends a 400 if req.query.includeAuthor IS defined
-    // and is not a boolean. Ignores if undefined.
-    includeAuthor: { isRequired: false, isBoolean: true }
+    includeAuthor: { isRequired: false, isBoolean: true, toBoolean: true }
   }
 }), function (req, res) {
   // Validation passed, so return the article
