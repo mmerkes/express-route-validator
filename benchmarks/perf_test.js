@@ -9,7 +9,7 @@ var request = require('supertest'),
     results = require('./results.json'),
     app;
 
-var TIMES = 1000,
+var TIMES = 100000,
     LIMIT = 20,
     START = new Date();
 

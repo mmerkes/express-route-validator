@@ -37,7 +37,7 @@ app.get('/items/:item', routeValidator.validate({
   params: {
     item: { isMongoId: true, isRequired: true }
   }
-}), function (req, res, next) {
+}), function (req, res) {
   return res.status(200).end();
 });
 

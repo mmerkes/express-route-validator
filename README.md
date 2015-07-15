@@ -76,6 +76,8 @@ app.listen(3000);
   - [callNext](#call-next)
   - [errorHandler](#error-handler)
   - [set()](#set)
+7. [Working with other popular libraries](#other-popular-modules)
+  - [Examples Using Modules](#examples-using-modules)
 
 ### <a name="validate"></a>`validate(config)`
 
@@ -534,6 +536,15 @@ routeValidator.set('errorHandler', function (err, req, res, next) {
 ```
 
 However, route specific settings will always override global settings.
+
+## <a name="other-popular-modules"></a>Working with other popular modules
+
+For convenience, we've included a some examples servers that use popular modules with some useful functionality. Check the `examples` folder to see the latest example servers.
+
+### <a name="examples-using-modules"></a>Examples Using Modules
+
+* [mongodb](https://www.npmjs.com/package/mongodb) - `/examples/with_mongodb.js`
+* [mongoose](https://www.npmjs.com/package/mongoose) - `/examples/with_mongoose.js`
 
 ## Acknowledgements
 

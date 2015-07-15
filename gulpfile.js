@@ -7,6 +7,7 @@ var gulp = require('gulp'),
     stylish = require('jshint-stylish');
 
 var paths = {
+  extras: ['examples/**/*.js', 'benchmarks/**/*.js'],
   js: ['gulpfile.js', 'lib/**/*.js', 'index.js'],
   test: ['test/**/*.js']
 };
@@ -45,7 +46,7 @@ gulp.task('coverage', function (done) {
 });
 
 gulp.task('lint', function() {
-  return gulp.src(Array.prototype.concat.call([], paths.js, paths.test))
+  return gulp.src(Array.prototype.concat.call([], paths.js, paths.test, paths.extras))
     .pipe(jshint())
     .pipe(jshint.reporter(stylish))
     .pipe(jshint.reporter('fail'));
