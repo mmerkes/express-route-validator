@@ -124,9 +124,9 @@ describe('UNIT Coercers', function () {
       });
     });
 
-    describe('toLowerCase(str)', function () {
+    describe('toLowercase(str)', function () {
       it('should convert string to lowercase', function () {
-        expect(coercers.before.toLowerCase('aBc', true)).to.equal('abc');
+        expect(coercers.before.toLowercase('aBc', true)).to.equal('abc');
       });
     });
 
@@ -138,9 +138,9 @@ describe('UNIT Coercers', function () {
       });
     });
 
-    describe('toUpperCase(str)', function () {
+    describe('toUppercase(str)', function () {
       it('should convert string to uppercase', function () {
-        expect(coercers.before.toUpperCase('aBc', true)).to.equal('ABC');
+        expect(coercers.before.toUppercase('aBc', true)).to.equal('ABC');
       });
     });
 
@@ -163,6 +163,18 @@ describe('UNIT Coercers', function () {
   });
 
   describe('after validation methods', function () {
+    describe('parseJSON(str)', function () {
+      it('should return a parsed javascript object when passed valid JSON', function () {
+        var result = coercers.after.parseJSON('{ "foo": "bar" }', true);
+        expect(result).to.be.an('object');
+        expect(result).to.have.property('foo').that.equals('bar');
+      });
+
+      it('should return undefined if it fails to parse JSON, i.e. invalid JSON', function () {
+        expect(coercers.after.parseJSON('invalid', true)).to.be.null;
+      });
+    });
+
     describe('split(str [, options])', function () {
       var str = 'a,b,c';
 
@@ -185,18 +197,6 @@ describe('UNIT Coercers', function () {
         expect(result).to.be.an.instanceOf(Array).and.have.property('length').that.equals(2);
         expect(result[0]).to.equal('a');
         expect(result[1]).to.equal('b');
-      });
-    });
-
-    describe('toJSON(str)', function () {
-      it('should return a parsed javascript object when passed valid JSON', function () {
-        var result = coercers.after.toJSON('{ "foo": "bar" }', true);
-        expect(result).to.be.an('object');
-        expect(result).to.have.property('foo').that.equals('bar');
-      });
-
-      it('should return undefined if it fails to parse JSON, i.e. invalid JSON', function () {
-        expect(coercers.after.toJSON('invalid', true)).to.be.null;
       });
     });
   });

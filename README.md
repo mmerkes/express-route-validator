@@ -364,23 +364,62 @@ routeValidator.addValidators({
 
 ### <a name="coercers"></a>Coercers
 
-`express-route-validator` will extend the [validator](https://github.com/chriso/validator.js) module to give you a number of coercers by default. Essentially, coercers will convert the value in one of the parameters. For example, your server may require that all emails are lowercase characters only, so you could use a coercer called `toLowercase` that automatically converts the email to lowercase before it reaches your controller. Also, coercers could be used to change input from an invalid value to a valid value if a validator is too strict for your purposes. As discussed in the [Validation Stages](#validation-stages) section, there are two coerce stages: before validation and after validation. Be sure that you're coercing at the appropriate stage, which is set when coercers are added.
-
-**NOTE:** Default coercers still needs to be implemented, so they are not currently available. However, you can add custom ones yourself.
+`express-route-validator` extends the [validator](https://github.com/chriso/validator.js) module to give you a number of coercers by default. Essentially, coercers change the value in one of the parameters. For example, your server may require that all emails are lowercase characters only, so you could use `toLowercase` that automatically converts the email to lowercase before it reaches your controller. Also, coercers could be used to change input from an invalid value to a valid value if a validator is too strict for your purposes. As discussed in the [Validation Stages](#validation-stages) section, there are two coerce stages: before validation and after validation. Be sure that you're coercing at the appropriate stage, which is set when coercers are added.
 
 #### <a name="coercers-list"></a>List
 
-##### Before Stage Coercers
+##### `before` Stage Coercers
 
 All of these coercers are run before the validation stage.
 
-* Coming soon!
+* **{ blacklist: String }** - remove characters that appear in the blacklist. The characters are used in a RegExp, so you will need to escape some chars, e.g. `'\[\]'`.
+  - `phone: { blacklist: '()-. ' }` - before: '(715) 345-8765', after: '7153458765'
+* **{ escape: Boolean }** - replace <, >, &, ', " and / with HTML entities.
+  - `input: { escape: true }` - before: '<script>...</script>', after: '&lt;script&gt;...&lt;&#x2F;script&gt;'
+* **{ ltrim: (String) }** - trim characters from the left-side of the input, with an optional string of characters to trim instead of the default (whitespace).
+  - `title: { ltrim: true }` - before: ' title ', after: 'title '
+  - `title: { ltrim: '!?' }` - before: '!Title!', after: 'Title!'
+* **{ normalizeEmail: (Object) }** - canonicalize an email address. `Object` is an optional options object which defaults to `{ lowercase: true }`. With lowercase set to true, the local part of the email address is lowercased for all domains; the hostname is always lowercased and the local part of the email address is always lowercased for hosts that are known to be case-insensitive (currently only GMail). Normalization follows special rules for known providers: currently, GMail addresses have dots removed in the local part and are stripped of tags (e.g. some.one+tag@gmail.com becomes someone@gmail.com) and all @googlemail.com addresses are normalized to @gmail.com.
+  - `email: { normalizeEmail: true }` - before: 'Matt@Googlemail.com', after: 'matt@gmail.com'
+  - `email: { normalizeEmail: { lowercase: false }}` - before: 'Matt@Googlemail.com', after: 'Matt@gmail.com'
+* **{ rtrim: (String) }** - trim characters from the right-side of the input, with an optional string of characters to trim instead of the default (whitespace).
+  - `title: { rtrim: true }` - before: ' title ', after: ' title'
+  - `title: { rtrim: '!?' }` - before: '!Title!', after: '!Title'
+* **{ stripLow: (Object) }** - remove characters with a numerical value < 32 and 127, mostly control characters. `Object` is an options object that defaults to `{ keep_new_lines: false }`. If keep_new_lines is true, newline characters are preserved (\n and \r, hex 0xA and 0xD). Unicode-safe in JavaScript.
+  - `title: { stripLow: true }` - before: 'foo\x00', after: 'foo'
+  - `title: { stripLow: { keep_new_lines: true }}` - before: '\x03foo\x0A\x0D', after: 'foo\x0A\x0D'
+* **{ toBoolean: (Object) }** - convert the input to a boolean. Everything except for '0', 'false' and '' returns true. `Object` is an options object that defaults to `{ strict: false }`. In strict mode, only '1' and 'true' return true.
+  - `isActive: { toBoolean: false }` - before: 'true', after: `true`; before: 'false', after: false; before: 'foo', after: true
+  - `isCool: { toBoolean: { strict: true }}` - before: 'true', after: `true`; before: 'false', after: false; before: 'foo', after: false
+* **{ toDate: Boolean }** - convert the input to a date, or null if the input is not a date.
+  - `ts: { toDate: true }` - before: ''Tue Jul 14 2015', after: `Date('Tue Jul 14 2015')`
+* **{ toFloat: Boolean }** - convert the input to a float, or NaN if the input is not a float.
+  - `rate: { toFloat: true }` - before: '10.4', after: 10.4; before: 'foo', after: NaN
+* **{ toInt: (Number) }** - convert the input to an integer, or NaN if the input is not an integer.
+  - `code: { toInt: true }` - before: '1', after: 1; before: 'foo', after: NaN
+  - `code: { toInt: 16 }` - before: 'ff', after: 255
+* **{ toLowercase: Boolean }** - convert string to all lowercase characters.
+  - `email: { toLowercase: true }` - before: 'Matt@Gmail.com', after: 'matt@gmail.com'
+* **{ toString: Boolean }** - convert the input to a string.
+  - `statusCode: { toString: true }` - before: 1, after: '1'
+* **{ toUppercase: Boolean }** - convert string to all uppercase characters.
+  - `username: { toUppercase: true }` - before: 'big_stan', after: 'BIG_STAN'
+* **{ trim: (String) }** - trim characters from both sides of the input, with an optional string of characters to trim instead of the default (whitespace).
+  - `title: { trim: true }` - before: ' title ', after: 'title'
+  - `title: { trim: '!?' }` - before: '!Title!', after: 'Title'
+* **{ whitelist: String }** - remove characters that do not appear in the whitelist. The characters are used in a RegExp and so you will need to escape some chars, e.g. whitelist(input, '\[\]').
+  - `binary: { whitelist: '01' }` - before: 'foo0101bar', after: '0101'
 
-##### After Stage Coercers
+##### `after` Stage Coercers
 
 All of these coercers are run after the validation stage.
 
-* Coming soon!
+* **{ parseJSON: Boolean }** - convert string to a javascript object, or sets value to null if it fails to convert. Whenever `parseJSON` is included in a route, `isJSON` should be used as a validator.
+  - `data: { isJSON: true, parseJSON: true }` - before: '{ "foo": "bar" }', after: `{ foo: 'bar' }`; before: 'foo', after: `null`
+* **{ split: (Object) }** - split string into array. Takes an optional 'options' object that can contain properties 'separator' and 'limit'. `separator` should always be set or it will always split into an array with the entire string as the only element.
+  - `fruits: { split: true }` - before: 'apple,banana', after: ['apple,banana']
+  - `fruits: { split: { separator: ',' }}` - before: 'apple,banana', after: ['apple', 'banana']
+  - `fruits: { split: { separator: ',', limit: 1 }}` - before: 'apple,banana', after: ['apple']
 
 ### <a name="custom-coercers"></a>Adding Custom Coercers
 
@@ -503,7 +542,7 @@ However, route specific settings will always override global settings.
 
 ## Acknowledgements
 
-Syntax is inspired by the [node-restify-validation](https://www.npmjs.com/package/node-restify-validation) library.
+Syntax is inspired by the [node-restify-validation](https://www.npmjs.com/package/node-restify-validation) library. Also, this library is greatly indebted to [validator](https://github.com/chriso/validator.js) for providing a majority of the validators and coercers used in this library, and most of the related documentation uses text directly from `validator` documentation.
 
 ## Contributing
 
