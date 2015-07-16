@@ -5,6 +5,7 @@ var request = require('supertest'),
     expect = chai.expect,
     routeValidator = require('../lib/index'),
     app = require('./test_server'),
+    express = require('express'),
     async = require('async');
 
 describe('INTEGRATION middleware', function () {
@@ -400,6 +401,47 @@ describe('INTEGRATION middleware', function () {
             expect(res.body).to.have.property('error').that.contains('params.user');
             return done();
           });
+      });
+    });
+
+    describe('when configured scope is undefined', function () {
+      var app;
+      before( function () {
+        app = express();
+        // req.body will always be undefined because there is no body parser
+        app.post('/items', routeValidator.validate({
+          body: {
+            name: { isRequired: true }
+          }
+        }), function (req, res) {
+          return res.status(200).end();
+        });
+        app.post('/users', routeValidator.validate({
+          body: {
+            email: { isRequired: false }
+          }
+        }), function (req, res) {
+          return res.status(200).end();
+        });
+      });
+
+      it('should invalidate the request if config has required field', function (done) {
+        request(app)
+          .post('/items')
+          .send({
+            name: 'Chainsaw'
+          })
+          .expect(400, function (err, res) {
+            if (err) return done(err);
+            expect(res.body).to.have.property('error').that.contains('body.name');
+            return done();
+          });
+      });
+
+      it('should not invalidate the request if config has no required fields', function (done) {
+        request(app)
+          .post('/users')
+          .expect(200, done);
       });
     });
   });
