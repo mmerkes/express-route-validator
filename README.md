@@ -62,6 +62,7 @@ See the `examples` folder for more detailed examples.
   - [Validation Scope](#validation-scope)
   - [isRequired Property](#isrequired)
   - [Passing in Arguments](#passing-arguments)
+  - [Setting Custom Error Messages](#custom-error-messages)
   - [Documenting Route Properties](#documenting-routes)
   - [Validation Stages](#validation-stages)
 2. [Validators](#validators)
@@ -147,6 +148,20 @@ Some validators take in an options object, such as `isInt`:
 ```
 
 See [Validators](#validators) section for complete documentation on validation methods.
+
+#### <a name="custom-error-messages"></a>Setting Custom Error Messages
+
+By default, errors messages sent via `express-route-validator` are of two types: *'scope.param is required'* (if required property is `undefined`) or *'scope.param failed validation'* (if property exists, but is invalid). However, you can set the `message` property in your configuration to override the latter error message.
+
+```javascript
+{
+  body: {
+    code: { isInt: { min: 0, max: 100 }, message: 'code must be an integer between 0 and 100' }
+  }
+}
+```
+
+If you sent an invalid code, '1000' or 'foo', this will send *'code must be an integer between 0 and 100'* rather than *'body.code failed validation'*.
 
 #### <a name="documenting-routes"></a>Documenting Route Properties
 

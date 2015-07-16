@@ -444,6 +444,30 @@ describe('INTEGRATION middleware', function () {
           .expect(200, done);
       });
     });
+
+    describe('prop.message is set', function () {
+      var app, message = 'Custom Message';
+      before( function () {
+        app = express();
+        app.get('/items/:item', routeValidator.validate({
+          params: {
+            item: { isRequired: true, isMongoId: false, message: message }
+          }
+        }), function (req, res) {
+          return res.status(200).end();
+        });
+      });
+
+      it('should send prop.message as a custom error message', function (done) {
+        request(app)
+          .get('/items/abc')
+          .expect(400, function (err, res) {
+            if (err) return done(err);
+            expect(res.body).to.have.property('error').that.equals(message);
+            return done();
+          });
+      });
+    });
   });
 
   /***********
