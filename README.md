@@ -52,6 +52,8 @@ app.get('/articles/:article', routeValidator.validate({
 app.listen(3000);
 ```
 
+See the `examples` folder for more detailed examples.
+
 ## API Documentation
 
 ### Contents
