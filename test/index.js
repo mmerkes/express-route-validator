@@ -341,6 +341,18 @@ describe('INTEGRATION middleware', function () {
       });
     });
 
+    describe('with default coercers', function () {
+      it('should coerce values when configured with coercers', function (done) {
+        request(app)
+          .put('/items/507f1f77bcf86cd799439011')
+          .send({
+            user: 'SteveO@googleMail.com',
+            rate: '100'
+          })
+          .expect(200, done);
+      });
+    });
+
     describe('set callNext in route', function () {
       it('should do nothing different if callNext is set to true and validation passes', function (done) {
         request(app)

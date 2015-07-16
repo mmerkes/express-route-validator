@@ -3,6 +3,7 @@
 var express = require('express'),
     bodyParser = require('body-parser'),
     routeValidator = require('../index'),
+    validator = require('validator'),
     app = express();
 
 app.use(bodyParser.json());
@@ -34,7 +35,8 @@ app.post('/items', routeValidator.validate({
     type: { isRequired: true, isIn: ['lawn', 'garden', 'tools'] },
     user: { isRequired: true, isEmail: true },
     uuid: { isRequired: false, isUUID: true },
-    url: { isURL: true }
+    url: { isURL: true },
+    rate: { isInt: true, toInt: true }
   },
   headers: {
     'content-type': { isRequired: true, equals: 'application/json' },
@@ -42,6 +44,24 @@ app.post('/items', routeValidator.validate({
     'accept-version': { isRequired: false, isIn: ['1.0', '2.0'] }
   }
 }), function (req, res) {
+  return res.status(200).end();
+});
+
+// For verifying coercers
+app.put('/items/:item', routeValidator.validate({
+  body: {
+    user: { isRequired: false, isEmail: true, normalizeEmail: true },
+    rate: { isRequired: true, isInt: true, toInt: true }
+  },
+  params: {
+    item: { isMongoId: true, isRequired: true }
+  }
+}), function (req, res) {
+  // Make sure values are coerced
+  if (typeof req.body.rate !== 'number' || !validator.isLowercase(req.body.user)) {
+    return res.status(500).end();
+  }
+
   return res.status(200).end();
 });
 
