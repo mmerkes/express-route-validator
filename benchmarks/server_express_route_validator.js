@@ -41,6 +41,6 @@ app.get('/items/:item', routeValidator.validate({
   return res.status(200).end();
 });
 
-app.listen(3000);
+app.listen(3004);
 
 module.exports = app;

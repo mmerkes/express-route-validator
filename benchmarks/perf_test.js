@@ -5,17 +5,22 @@
 var request = require('supertest'),
     async = require('async'),
     fs = require('fs'),
-    serverPaths = ['server_no_validation.js', 'server_base.js', 'server_manual_validation.js'],
+    serverPaths = [
+      'server_no_validation',
+      'server_express_route_validator',
+      'server_manual_validation',
+      'server_express_validator'
+    ],
     results = require('./results.json'),
     app;
 
-var TIMES = 10000,
+var TIMES = 1000,
     LIMIT = 20,
     START = new Date(),
     counter = 0;
 
 var test_routes = [
-  function (n, next) {
+  function _postItems (n, next) {
     request(app)
       .post('/items')
       .send({
@@ -27,13 +32,16 @@ var test_routes = [
         url: 'http://tool.com/chainsaw/real-big'
       })
       .expect(200, function (err, res) {
+        if (err) {
+          console.log(err.message);
+          return _postItems(n, next); // TEMPORARY unresolved issue with API calls timing out
+        }
         trackProgress();
-        if (err) return next(null); // TEMPORARY unresolved issue with API calls timing out
         // Write out callback to avoid storing all response objects
         return next(err, +res.headers['x-response-time']);
       });
   },
-  function (n, next) {
+  function _getItems (n, next) {
     request(app)
       .get('/items')
       .query({
@@ -43,18 +51,24 @@ var test_routes = [
         sort: 'date'
       })
       .expect(200, function (err, res) {
+        if (err) {
+          console.log(err.message);
+          return _getItems(n, next); // TEMPORARY unresolved issue with API calls timing out
+        }
         trackProgress();
-        if (err) return next(null); // TEMPORARY unresolved issue with API calls timing out
         // Write out callback to avoid storing all response objects
         return next(err, +res.headers['x-response-time']);
       });
   },
-  function (n, next) {
+  function _getItem (n, next) {
     request(app)
       .get('/items/507f1f77bcf86cd799439011')
       .expect(200, function (err, res) {
+        if (err) {
+          console.log(err.message);
+          return _getItem(n, next); // TEMPORARY unresolved issue with API calls timing out
+        }
         trackProgress();
-        if (err) return next(null); // TEMPORARY unresolved issue with API calls timing out
         // Write out callback to avoid storing all response objects
         return next(err, +res.headers['x-response-time']);
       });
@@ -87,30 +101,28 @@ function trackProgress () {
   }
 }
 
-async.each(serverPaths, function (serverPath, callback) {
+async.eachLimit(serverPaths, 1, function (serverPath, callback) {
   app = require('./' + serverPath);
   var data = {};
 
   // Set a timeout to wait for everyone to be ready
-  setTimeout( function () {
-    async.parallel(tasks, function (err, stats) {
-      if (err) throw err;
-      var total_time = 0;
-      stats.forEach( function (set) {
-        set.forEach( function (ms) {
-          if (ms) {
-            total_time += ms;
-          }
-        });
+  async.parallel(tasks, function (err, stats) {
+    if (err) throw err;
+    var total_time = 0;
+    stats.forEach( function (set) {
+      set.forEach( function (ms) {
+        if (ms) {
+          total_time += ms;
+        }
       });
-      data.total_requests = TIMES * tasks.length;
-      data.total_time = total_time;
-      data.ms_per_request = data.total_time / data.total_requests;
-      results[serverPath] = data;
-
-      return callback();
     });
-  }, 1000);
+    data.total_requests = TIMES * tasks.length;
+    data.total_time = total_time;
+    data.ms_per_request = data.total_time / data.total_requests;
+    results[serverPath] = data;
+
+    return callback();
+  });
 }, function (err) {
   if (err) throw err;
 

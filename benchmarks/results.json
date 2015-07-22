@@ -1,18 +1,23 @@
 {
-  "server_base.js": {
+  "server_manual_validation": {
     "total_requests": 30000,
-    "total_time": 2715.4979999995303,
-    "ms_per_request": 0.09051659999998435
+    "total_time": 2381.3849999993395,
+    "ms_per_request": 0.07937949999997798
   },
-  "server_no_validation.js": {
+  "server_no_validation": {
     "total_requests": 30000,
-    "total_time": 2572.484999999542,
-    "ms_per_request": 0.08574949999998474
+    "total_time": 1577.9130000001321,
+    "ms_per_request": 0.05259710000000441
   },
-  "start_time": "2015-07-22T02:49:50.674Z",
-  "server_manual_validation.js": {
+  "server_express_validator": {
     "total_requests": 30000,
-    "total_time": 2623.788999999571,
-    "ms_per_request": 0.08745963333331903
-  }
+    "total_time": 3576.100000000225,
+    "ms_per_request": 0.11920333333334084
+  },
+  "server_express_route_validator": {
+    "total_requests": 30000,
+    "total_time": 2875.929000000028,
+    "ms_per_request": 0.09586430000000093
+  },
+  "start_time": "2015-07-22T21:22:16.447Z"
 }
