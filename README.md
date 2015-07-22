@@ -5,9 +5,13 @@ Simple API validation for Express routes.
 [![Build Status](https://travis-ci.org/mmerkes/express-route-validator.svg)](https://travis-ci.org/mmerkes/express-route-validator)
 [![Coverage Status](https://coveralls.io/repos/mmerkes/express-route-validator/badge.svg?branch=master&service=github)](https://coveralls.io/github/mmerkes/express-route-validator?branch=master)
 
-**NOTE: This module is in progress, so there will be regular updates until it's complete. However, all documented features are live. See [issues](https://github.com/mmerkes/express-route-validator/issues) for upcoming features.**
-
 ## Basic Usage
+
+Install with NPM:
+
+```bash
+npm install express-route-validator
+```
 
 `express-route-validator` has very simple usage. Just call `routeValidator.validate()` as middleware in your `express` routes, pass it a configuration object, and it returns a closure that validates based on your configuration object and sends a 400 by default if it fails. Also, `express-route-validator` extends the `validator` library to give you access to its methods for validation.
 
