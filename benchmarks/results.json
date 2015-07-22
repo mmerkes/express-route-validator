@@ -1,13 +1,18 @@
 {
   "server_base.js": {
-    "total_requests": 300000,
-    "total_time": 30029.648999940397,
-    "ms_per_request": 0.10009882999980133
+    "total_requests": 30000,
+    "total_time": 2715.4979999995303,
+    "ms_per_request": 0.09051659999998435
   },
   "server_no_validation.js": {
-    "total_requests": 300000,
-    "total_time": 29671.144999941218,
-    "ms_per_request": 0.09890381666647073
+    "total_requests": 30000,
+    "total_time": 2572.484999999542,
+    "ms_per_request": 0.08574949999998474
   },
-  "start_time": "2015-07-15T17:27:51.004Z"
+  "start_time": "2015-07-22T02:49:50.674Z",
+  "server_manual_validation.js": {
+    "total_requests": 30000,
+    "total_time": 2623.788999999571,
+    "ms_per_request": 0.08745963333331903
+  }
 }
