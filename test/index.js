@@ -4,13 +4,26 @@ var request = require('supertest'),
     chai = require('chai'),
     expect = chai.expect,
     routeValidator = require('../lib/index'),
-    app = require('./test_server'),
+    validator = require('validator'),
     express = require('express'),
+    bodyParser = require('body-parser'),
     async = require('async');
 
-describe('INTEGRATION middleware', function () {
+describe('INTEGRATION index', function () {
   describe('#validates(config)', function () {
     describe('basic route validation', function () {
+      var app;
+      before( function () {
+        app = express();
+        app.get('/items/:item', routeValidator.validate({
+          params: {
+            item: { isMongoId: true, isRequired: true }
+          }
+        }), function (req, res) {
+          return res.status(200).end();
+        });
+      });
+
       it('should send a 400 when route fails validation', function (done) {
         request(app)
           .get('/items/aasdklfjklsadlfjik')
@@ -43,6 +56,26 @@ describe('INTEGRATION middleware', function () {
     });
 
     describe('validates req.params', function () {
+      var app;
+      before( function () {
+        app = express();
+        app.get('/items/:item', routeValidator.validate({
+          params: {
+            item: { isMongoId: true, isRequired: true }
+          }
+        }), function (req, res) {
+          return res.status(200).end();
+        });
+        app.get('/items/:item/messages/:message', routeValidator.validate({
+          params: {
+            item: { isMongoId: true, isRequired: true },
+            message: { isMongoId: true, isRequired: true }
+          }
+        }), function (req, res) {
+          return res.status(200).end();
+        });
+      });
+
       it('should validate params passed into route, on success', function (done) {
         request(app)
           .get('/items/507f1f77bcf86cd799439011')
@@ -77,6 +110,25 @@ describe('INTEGRATION middleware', function () {
     });
 
     describe('validates req.body', function () {
+      var app;
+      before( function () {
+        app = express();
+        app.use(bodyParser.json());
+        app.post('/items', routeValidator.validate({
+          body: {
+            name: { isRequired: true },
+            date: { isRequired: true, isDate: true },
+            type: { isRequired: true, isIn: ['lawn', 'garden', 'tools'] },
+            user: { isRequired: true, isEmail: true },
+            uuid: { isRequired: false, isUUID: true },
+            url: { isURL: true },
+            rate: { isInt: true, toInt: true }
+          }
+        }), function (req, res) {
+          return res.status(200).end();
+        });
+      });
+
       it('should validate params passed into body, on success', function (done) {
         request(app)
           .post('/items')
@@ -88,7 +140,6 @@ describe('INTEGRATION middleware', function () {
             uuid: 'A987FBC9-4BED-3078-CF07-9141BA07C9F3',
             url: 'http://tool.com/chainsaw/real-big'
           })
-          .set('Authorization', 'Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==')
           .expect(200, done);
       });
 
@@ -103,7 +154,6 @@ describe('INTEGRATION middleware', function () {
             uuid: 'A987FBC9-4BED-3078-CF07-9141BA07C9F3',
             url: 'http://tool.com/chainsaw/real-big'
           })
-          .set('Authorization', 'Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==')
           .expect(400, function (err, res) {
             if (err) return done(err);
             expect(res.body).to.have.property('error').that.contains('body.type');
@@ -122,7 +172,6 @@ describe('INTEGRATION middleware', function () {
             uuid: 'A987FBC9-4BED-3078-CF07-9141BA07C9F3',
             url: 'http://tool.com/chainsaw/real-big'
           })
-          .set('Authorization', 'Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==')
           .expect(400, function (err, res) {
             if (err) return done(err);
             expect(res.body).to.have.property('error').that.contains('body.user');
@@ -156,7 +205,6 @@ describe('INTEGRATION middleware', function () {
             uuid: 'A987FBC9-4BED-3078-CF07-9141BA07C9F3',
             // url: 'http://tool.com/chainsaw/real-big'
           })
-          .set('Authorization', 'Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==')
           .expect(200, done);
       });
 
@@ -171,7 +219,6 @@ describe('INTEGRATION middleware', function () {
             uuid: 'banana', // invalid and not required
             url: 'http://tool.com/chainsaw/real-big'
           })
-          .set('Authorization', 'Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==')
           .expect(400, function (err, res) {
             if (err) return done(err);
             expect(res.body).to.have.property('error').that.contains('body.uuid');
@@ -181,6 +228,22 @@ describe('INTEGRATION middleware', function () {
     });
 
     describe('validates req.query', function () {
+      var app;
+      before( function () {
+        app = express();
+        app.use(bodyParser.json());
+        app.get('/items', routeValidator.validate({
+          query: {
+            since: { isDate: true },
+            limit: { isInt: true, isRequired: true },
+            page: { isInt: true, isRequired: false },
+            sort: { isRequired: true }
+          }
+        }), function (req, res) {
+          return res.status(200).end();
+        });
+      });
+
       it('should validate query params, on success', function (done) {
         request(app)
           .get('/items')
@@ -267,16 +330,30 @@ describe('INTEGRATION middleware', function () {
     });
 
     describe('validates req.headers', function () {
+      var app;
+      before( function () {
+        app = express();
+        app.use(bodyParser.json());
+        app.use(bodyParser.urlencoded({ extended: false }));
+        app.post('/items', routeValidator.validate({
+          body: {
+            name: { isRequired: true }
+          },
+          headers: {
+            'content-type': { isRequired: true, equals: 'application/json' },
+            'authorization': { isRequired: true },
+            'accept-version': { isRequired: false, isIn: ['1.0', '2.0'] }
+          }
+        }), function (req, res) {
+          return res.status(200).end();
+        });
+      });
+
       it('should validate headers, on success', function (done) {
         request(app)
           .post('/items')
           .send({
-            name: 'Chainsaw',
-            date: new Date(),
-            type: 'tools',
-            user: 'stevie@tool.com',
-            uuid: 'A987FBC9-4BED-3078-CF07-9141BA07C9F3',
-            url: 'http://tool.com/chainsaw/real-big'
+            name: 'Chainsaw'
           })
           .set('Authorization', 'Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==')
           .set('Accept-Version', '1.0')
@@ -288,12 +365,7 @@ describe('INTEGRATION middleware', function () {
           .post('/items')
           .type('form')
           .send({
-            name: 'Chainsaw',
-            date: new Date(),
-            type: 'tools',
-            user: 'stevie@tool.com',
-            uuid: 'A987FBC9-4BED-3078-CF07-9141BA07C9F3',
-            url: 'http://tool.com/chainsaw/real-big'
+            name: 'Chainsaw'
           })
           .set('Authorization', 'Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==')
           .expect(400, function (err, res) {
@@ -307,12 +379,7 @@ describe('INTEGRATION middleware', function () {
         request(app)
           .post('/items')
           .send({
-            name: 'Chainsaw',
-            date: new Date(),
-            type: 'tools',
-            user: 'stevie@tool.com',
-            uuid: 'A987FBC9-4BED-3078-CF07-9141BA07C9F3',
-            url: 'http://tool.com/chainsaw/real-big'
+            name: 'Chainsaw'
           })
           .expect(400, function (err, res) {
             if (err) return done(err);
@@ -325,12 +392,7 @@ describe('INTEGRATION middleware', function () {
         request(app)
           .post('/items')
           .send({
-            name: 'Chainsaw',
-            date: new Date(),
-            type: 'tools',
-            user: 'stevie@tool.com',
-            uuid: 'A987FBC9-4BED-3078-CF07-9141BA07C9F3',
-            url: 'http://tool.com/chainsaw/real-big'
+            name: 'Chainsaw'
           })
           .set('Authorization', 'Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==')
           .set('Accept-Version', '0.0')
@@ -343,6 +405,29 @@ describe('INTEGRATION middleware', function () {
     });
 
     describe('with default coercers', function () {
+      var app;
+      before( function () {
+        app = express();
+        app.use(bodyParser.json());
+        app.put('/items/:item', routeValidator.validate({
+          body: {
+            user: { isRequired: false, isEmail: true, normalizeEmail: true },
+            rate: { isRequired: true, isInt: true, toInt: true }
+          },
+          params: {
+            item: { isMongoId: true, isRequired: true }
+          }
+        }), function (req, res) {
+          // Make sure values are coerced
+          if (typeof req.body.rate !== 'number' || !validator.isLowercase(req.body.user)) {
+            console.log(JSON.stringify(req.body, null, 2));
+            return res.status(500).end();
+          }
+
+          return res.status(200).end();
+        });
+      });
+ 
       it('should coerce values when configured with coercers', function (done) {
         request(app)
           .put('/items/507f1f77bcf86cd799439011')
@@ -355,6 +440,29 @@ describe('INTEGRATION middleware', function () {
     });
 
     describe('set callNext in route', function () {
+      var app;
+      before( function () {
+        app = express();
+        app.use(bodyParser.json());
+        app.get('/users', routeValidator.validate({
+          query: {
+            since: { isDate: true },
+            limit: { isInt: true, isRequired: true },
+            page: { isInt: true, isRequired: false },
+            sort: { isRequired: true }
+          },
+          callNext: true
+        }), function (req, res) {
+          return res.status(200).end();
+        });
+        app.use( function (err, req, res, next) { // jshint ignore:line
+          return res.status(400).send({
+            error: err.message,
+            message: 'calledNext'
+          });
+        });
+      });
+ 
       it('should do nothing different if callNext is set to true and validation passes', function (done) {
         request(app)
           .get('/users')
@@ -377,6 +485,7 @@ describe('INTEGRATION middleware', function () {
             sort: 'email'
           })
           .expect(400, function (err, res) {
+            console.log(JSON.stringify(res.body, null, 2));
             if (err) return done(err);
             expect(res.body).to.have.property('message').that.equals('calledNext');
             expect(res.body).to.have.property('error').that.contains('query.limit');
@@ -386,6 +495,24 @@ describe('INTEGRATION middleware', function () {
     });
 
     describe('set errorHandler in route', function () {
+      var app;
+      before( function () {
+        app = express();
+        app.get('/users/:user', routeValidator.validate({
+          params: {
+            user: { isRequired: true, isEmail: true }
+          },
+          errorHandler: function (err, req, res) {
+            return res.status(400).send({
+              message: 'routeErrorHandler',
+              error: err.message
+            });
+          }
+        }), function (req, res) {
+          return res.status(200).end();
+        });
+      });
+ 
       it('should do nothing different if errorHandler is set to true and validation passes', function (done) {
         request(app)
           .get('/users/stevie@tool.com')
@@ -516,9 +643,27 @@ describe('INTEGRATION middleware', function () {
   });
 
   describe('#addValidator(name, fn)', function () {
-    var isNumeric;
+    var isNumeric, app;
     before( function () {
       isNumeric = routeValidator._validators.isNumeric;
+      app = express();
+      app.use(bodyParser.json());
+      app.post('/users', routeValidator.validate({
+        body: {
+          name: { isRequired: true },
+          age: { isRequired: true, isValidAge: true },
+          email: { isRequired: true, isEmail: true }
+        }
+      }), function (req, res) {
+        return res.status(200).end();
+      });
+      app.put('/users/:user', routeValidator.validate({
+        body: {
+          age: { isNumeric: true, isRequired: true }
+        }
+      }), function (req, res) {
+        return res.status(200).end();
+      });
     });
 
     after( function () {
@@ -531,7 +676,6 @@ describe('INTEGRATION middleware', function () {
     });
 
     it('should allow adding a custom validator', function (done) {
-      // Adds new validator
       routeValidator.addValidator('isValidAge', function (str) {
         var age = +str;
         return age ? (age > 0 && age < 120) : false;
@@ -546,7 +690,10 @@ describe('INTEGRATION middleware', function () {
               age: 23,
               email: 'billy@hillbilly.com'
             })
-            .expect(200, callback);
+            .expect(200, function (err, res) {
+              console.log(JSON.stringify(res.body,null,2));
+              return done(err);
+            });
         },
         function (callback) {
           request(app)
@@ -598,9 +745,20 @@ describe('INTEGRATION middleware', function () {
   });
 
   describe('#addValidators(obj)', function () {
-    var isNumeric;
+    var isNumeric, app;
     before( function () {
       isNumeric = routeValidator._validators.isNumeric;
+      app = express();
+      app.use(bodyParser.json());
+      app.post('/turtles', routeValidator.validate({
+        body: {
+          size: { isRequired: true, isNumeric: true },
+          weight: { isRequired: true, isTurtleWeight: true },
+          name: { isRequired: true }
+        }
+      }), function (req, res) {
+        return res.status(200).end();
+      });
     });
 
     after( function () {
@@ -678,6 +836,29 @@ describe('INTEGRATION middleware', function () {
   });
 
   describe('addCoercer()', function () {
+    var app;
+    before( function () {
+      app = express();
+      app.get('/turtles', routeValidator.validate({
+        query: {
+          sizeStr: { isRequired: false, toLowerCaseSize: true, isIn: ['eight', 'nine', 'ten'] },
+          weightRange: { isRequired: false, isWeightRange: true, toRangeArray: true }
+        }
+      }), function (req, res) {
+        if (req.query.weightRange) {
+          // Make sure that it was converted properly
+          // '100-500' -> [100, 500]
+          var range = req.query.weightRange;
+          if (!(range instanceof Array) || range.length !== 2 ||
+            typeof range[0] !== 'number' || typeof range[1] !== 'number') {
+            return res.status(500).end();
+          }
+        }
+
+        return res.status(200).end();
+      });
+    });
+
     describe('config.stage === "before"', function () {
       it('should be able to add a custom coercer run before validation', function (done) {
         routeValidator.addCoercer('toLowerCaseSize', {
@@ -784,9 +965,22 @@ describe('INTEGRATION middleware', function () {
   });
 
   describe('#addCoercers(obj)', function () {
-    var toDate;
+    var toDate, app;
     before( function () {
       toDate = routeValidator._before.toDate;
+      app = express();
+      app.get('/turtles', routeValidator.validate({
+        query: {
+          slug: { isRequired: false, toLowerCase: true, replaceSpaces: true },
+          minDate: { toDate: true }
+        }
+      }), function (req, res) {
+        if (req.query.slug && req.query.slug.indexOf(' ') !== -1) {
+          return res.status(500).end();
+        }
+
+        return res.status(200).end();
+      });
     });
 
     after( function () {
